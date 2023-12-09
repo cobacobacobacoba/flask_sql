@@ -77,13 +77,12 @@ def tambah():
         return jsonify({"status": "error", "message": "Invalid request method"})
     
 
-@app.route('/tambah', methods=['PUT'])
-def edit_data():
+@app.route('/tambah/<int:kontak_id>', methods=['PUT'])
+def edit_data(kontak_id):
     if request.method == 'PUT':
         try:
             # Extract data from JSON in the request
             data = request.json
-            id = data.get('id')
             nama = data.get('nama')
             kategori = data.get('kategori')
 
@@ -101,7 +100,7 @@ def edit_data():
             # Execute the query to update data
             conn.execute(
                 "UPDATE kontak SET nama=%s, kategori=%s, dibuat_pada=%s WHERE id=%s",
-                (nama, kategori, dibuat_pada_date, id),
+                (nama, kategori, dibuat_pada_date, kontak_id),
             )
 
             # Commit changes to the database
@@ -117,5 +116,29 @@ def edit_data():
         return jsonify({"status": "error", "message": "Invalid request method"})
 
 
+@app.route('/tambah/<int:kontak_id>', methods=['DELETE'])
+def delete_data(kontak_id):
+    if request.method == 'DELETE':
+        try:
+            # Use the existing connection
+            conn = mysql.connection.cursor()
+
+            # Execute the query to delete data
+            conn.execute("DELETE FROM kontak WHERE id = %s", (kontak_id,))
+
+            # Commit changes to the database
+            mysql.connection.commit()
+
+            # Close the database connection
+            conn.close()
+
+            return jsonify({'status': "success", "message": "Data deleted successfully"})
+
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)})
+    else:
+        return jsonify({"status": "error", "message": "Invalid request method"})
+    
 if __name__ == '__main__':
     app.run(debug=True)
+    
